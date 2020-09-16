@@ -136,7 +136,14 @@ stations[, n := 1:.N, by = .(USAF)]
 stations <- stations[n == 1,][, n := NULL]
 ```
 
-3.  Merge the data as we did during the lecture.
+3.  Merge the data as we did during the
+lecture.
+
+<!-- end list -->
+
+``` r
+met<-merge(x=met, y=stations, by.x="USAFID", by.y = "USAF", all.x=TRUE, all.y=FALSE)
+```
 
 ## Question 1: Representative station for the US
 
@@ -146,37 +153,40 @@ represent continental US using the `quantile()` function. Do these three
 coincide?
 
 ``` r
-met<-merge(x=met, y=stations, by.x="USAFID", by.y = "USAF", all.x=TRUE, all.y=FALSE)
-names(met)
+# obtain station averages
+met_stations <- met[, .(
+  wind.sp = mean(wind.sp,na.rm=TRUE),
+  temp=mean(temp, na.rm=TRUE),
+  atm.press= mean(atm.press,na.rm=TRUE)
+  ), by=USAFID]
+
+# obtain median
+met_stations[,temp50 := quantile(temp, probs=0.5, na.rm=TRUE)]
+met_stations[,atm.press50 := quantile(atm.press, probs=0.5, na.rm=TRUE)]
+met_stations[,wind.sp50 := quantile(wind.sp, probs=0.5, na.rm=TRUE)]
+
+# filter the data
+met_stations[which.min(abs(temp-temp50))]
 ```
 
-    ##  [1] "USAFID"            "WBAN"              "year"             
-    ##  [4] "month"             "day"               "hour"             
-    ##  [7] "min"               "lat"               "lon"              
-    ## [10] "elev"              "wind.dir"          "wind.dir.qc"      
-    ## [13] "wind.type.code"    "wind.sp"           "wind.sp.qc"       
-    ## [16] "ceiling.ht"        "ceiling.ht.qc"     "ceiling.ht.method"
-    ## [19] "sky.cond"          "vis.dist"          "vis.dist.qc"      
-    ## [22] "vis.var"           "vis.var.qc"        "temp"             
-    ## [25] "temp.qc"           "dew.point"         "dew.point.qc"     
-    ## [28] "atm.press"         "atm.press.qc"      "rh"               
-    ## [31] "CTRY"              "STATE"
+    ##    USAFID  wind.sp     temp atm.press   temp50 atm.press50 wind.sp50
+    ## 1: 720458 1.209682 23.68173       NaN 23.68406    1014.691  2.461838
 
 ``` r
-table(met$STATE)
+met_stations[which.min(abs(atm.press-atm.press50))]
 ```
 
-    ## 
-    ##     AL     AR     AZ     CA     CO     CT     DE     FL     GA     IA     ID 
-    ##  44743  34829  34150 109392  78843  11767   3231  80933  89241 107995  16005 
-    ##     IL     IN     KS     KY     LA     MA     MD     ME     MI     MN     MO 
-    ##  73792  38489  40707  30482  60958  20823  21323  12850 119490 120067  36229 
-    ##     MS     MT     NC     ND     NE     NH     NJ     NM     NV     NY     OH 
-    ##  33598   7654 100807  39207  65209  10862  16954  37106  18914  34164  51853 
-    ##     OK     OR     PA     RI     SC     SD     TN     TX     UT     VA     VT 
-    ##  80623  10484  47541   4879  63770  26339  21950 248410  20957  83500  14883 
-    ##     WA     WI     WV     WY 
-    ##   6731  97544  15396  31669
+    ##    USAFID  wind.sp     temp atm.press   temp50 atm.press50 wind.sp50
+    ## 1: 722238 1.472656 26.13978  1014.691 23.68406    1014.691  2.461838
+
+``` r
+met_stations[which.min(abs(wind.sp-wind.sp50))]
+```
+
+    ##    USAFID  wind.sp     temp atm.press   temp50 atm.press50 wind.sp50
+    ## 1: 720929 2.461838 17.43278       NaN 23.68406    1014.691  2.461838
+
+No, the three stations do not coincide.
 
 Knit the document, commit your changes, and Save it on GitHub. Don’t
 forget to add `README.md` to the tree, the first time you render it.

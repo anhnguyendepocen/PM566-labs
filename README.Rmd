@@ -113,15 +113,34 @@ stations <- stations[n == 1,][, n := NULL]
 
 3. Merge the data as we did during the lecture.
 
+```{r merge-data}
+met<-merge(x=met, y=stations, by.x="USAFID", by.y = "USAF", all.x=TRUE, all.y=FALSE)
+
+```
+
 ## Question 1: Representative station for the US
 
 What is the median station in terms of temperature, wind speed, and atmospheric pressure? Look for the three weather stations that best represent continental US using the `quantile()` function. Do these three coincide?
 
-```{r merge-data}
-met<-merge(x=met, y=stations, by.x="USAFID", by.y = "USAF", all.x=TRUE, all.y=FALSE)
-names(met)
-table(met$STATE)
+```{r}
+# obtain station averages
+met_stations <- met[, .(
+  wind.sp = mean(wind.sp,na.rm=TRUE),
+  temp=mean(temp, na.rm=TRUE),
+  atm.press= mean(atm.press,na.rm=TRUE)
+  ), by=USAFID]
+
+# obtain median
+met_stations[,temp50 := quantile(temp, probs=0.5, na.rm=TRUE)]
+met_stations[,atm.press50 := quantile(atm.press, probs=0.5, na.rm=TRUE)]
+met_stations[,wind.sp50 := quantile(wind.sp, probs=0.5, na.rm=TRUE)]
+
+# filter the data
+met_stations[which.min(abs(temp-temp50))]
+met_stations[which.min(abs(atm.press-atm.press50))]
+met_stations[which.min(abs(wind.sp-wind.sp50))]
 ```
+No, the three stations do not coincide.
 
 
 Knit the document, commit your changes, and Save it on GitHub. Don't forget to add `README.md` to the tree, the first time you render it.
