@@ -97,6 +97,13 @@ the MET data.
 1.  Load the `data.table` (and the `dtplyr` and `dplyr` packages if you
     plan to work with those).
 
+<!-- end list -->
+
+``` r
+library(data.table)
+met<-fread("/Users/meredith/Dropbox (University of Southern California)/Courses/PM566/met_all.gz")
+```
+
 2.  Load the met data from
     <https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz>,
     and also the station data. For the later, you can use the code we
@@ -108,7 +115,11 @@ the MET data.
 # Download the data
 stations <- fread("ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.csv")
 stations[, USAF := as.integer(USAF)]
+```
 
+    ## Warning in eval(jsub, SDenv, parent.frame()): NAs introduced by coercion
+
+``` r
 # Dealing with NAs and 999999
 stations[, USAF   := fifelse(USAF == 999999, NA_integer_, USAF)]
 stations[, CTRY   := fifelse(CTRY == "", NA_character_, CTRY)]
@@ -133,6 +144,39 @@ What is the median station in terms of temperature, wind speed, and
 atmospheric pressure? Look for the three weather stations that best
 represent continental US using the `quantile()` function. Do these three
 coincide?
+
+``` r
+met<-merge(x=met, y=stations, by.x="USAFID", by.y = "USAF", all.x=TRUE, all.y=FALSE)
+names(met)
+```
+
+    ##  [1] "USAFID"            "WBAN"              "year"             
+    ##  [4] "month"             "day"               "hour"             
+    ##  [7] "min"               "lat"               "lon"              
+    ## [10] "elev"              "wind.dir"          "wind.dir.qc"      
+    ## [13] "wind.type.code"    "wind.sp"           "wind.sp.qc"       
+    ## [16] "ceiling.ht"        "ceiling.ht.qc"     "ceiling.ht.method"
+    ## [19] "sky.cond"          "vis.dist"          "vis.dist.qc"      
+    ## [22] "vis.var"           "vis.var.qc"        "temp"             
+    ## [25] "temp.qc"           "dew.point"         "dew.point.qc"     
+    ## [28] "atm.press"         "atm.press.qc"      "rh"               
+    ## [31] "CTRY"              "STATE"
+
+``` r
+table(met$STATE)
+```
+
+    ## 
+    ##     AL     AR     AZ     CA     CO     CT     DE     FL     GA     IA     ID 
+    ##  44743  34829  34150 109392  78843  11767   3231  80933  89241 107995  16005 
+    ##     IL     IN     KS     KY     LA     MA     MD     ME     MI     MN     MO 
+    ##  73792  38489  40707  30482  60958  20823  21323  12850 119490 120067  36229 
+    ##     MS     MT     NC     ND     NE     NH     NJ     NM     NV     NY     OH 
+    ##  33598   7654 100807  39207  65209  10862  16954  37106  18914  34164  51853 
+    ##     OK     OR     PA     RI     SC     SD     TN     TX     UT     VA     VT 
+    ##  80623  10484  47541   4879  63770  26339  21950 248410  20957  83500  14883 
+    ##     WA     WI     WV     WY 
+    ##   6731  97544  15396  31669
 
 Knit the document, commit your changes, and Save it on GitHub. Don’t
 forget to add `README.md` to the tree, the first time you render it.
