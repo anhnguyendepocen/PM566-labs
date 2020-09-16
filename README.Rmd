@@ -1,6 +1,6 @@
 ---
 title: "Lab 05 - Data Wrangling"
-output: html_document
+output: github_document
 ---
 
 # Learning goals
