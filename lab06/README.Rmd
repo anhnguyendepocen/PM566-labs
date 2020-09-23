@@ -1,10 +1,10 @@
 ---
 title: "Lab 06 - Text Mining"
-output: html_document
+output: github_document
 ---
 
 ```{r setup}
-knitr::opts_chunk$set(eval = FALSE, include  = FALSE)
+knitr::opts_chunk$set(eval = TRUE, include  = TRUE)
 ```
 
 # Learning goals
@@ -85,10 +85,18 @@ mt_samples %>%
 Explain what we see from this result. Does it makes sense? What insights (if any) do we get?
 
 ```{r}
+
 mt_samples %>%
-  unnest_tokens(token, text)
+  unnest_tokens(token, transcription) %>%
+  count(token, sort=TRUE) %>%
+  top_n(n=20, wt = n) %>%
+  ggplot(aes(x=n, y= fct_reorder(token,n)))+
+  geom_col()
 
 ```
+
+
+
 ---
 
 ## Question 3
@@ -97,6 +105,18 @@ mt_samples %>%
 - Bonus points if you remove numbers as well
 
 What do we see know that we have removed stop words? Does it give us a better idea of what the text is about?
+
+```{r}
+
+mt_samples %>%
+  unnest_tokens(output = token, input = transcription) %>%
+  anti_join(stop_words, by = c("token" = "word")) %>%
+  count(token, sort=TRUE) %>%
+  top_n(n=20, wt = n) %>%
+  ggplot(aes(x=n, y= fct_reorder(token,n)))+
+  geom_col()
+
+```
 
 ---
 
