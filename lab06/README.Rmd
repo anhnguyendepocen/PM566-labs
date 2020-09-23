@@ -124,17 +124,44 @@ mt_samples %>%
 
 repeat question 2, but this time tokenize into bi-grams. how does the result change if you look at tri-grams?
 
+```{r}
+mt_samples %>%
+  unnest_ngrams(output=token, input=transcription, n=2) %>%
+  count(token, sort=TRUE) %>%
+  top_n(n=20, wt = n) %>%
+  ggplot(aes(x=n, y= fct_reorder(token,n)))+
+  geom_col()
+```
 ---
 
 # Question 5
 
-Using the results you got from questions 4. Pick a word and count the words that appears after and before it.
+Using the results you got from question 4. Pick a word and count the words that appears after and before it.
+
+```{r}
+mt_samples %>%
+  unnest_ngrams(output=token, input=transcription, n=2) %>%
+  separate(col=token, into=c("word1","word2"),sep=" ") %>%
+  select(word1, word2) %>%
+  filter(word1 == "blood") %>%
+  count(word2, sort=TRUE)
+```
 
 ---
 
 # Question 6 
 
 Which words are most used in each of the specialties. you can use `group_by()` and `top_n()` from `dplyr` to have the calculations be done within each specialty. Remember to remove stopwords. How about the most 5 used words?
+
+```{r}
+mt_samples %>%
+  group_by(medical_specialty) %>%
+  unnest_tokens(output = token, input = transcription) %>%
+  anti_join(stop_words, by = c("token" = "word")) %>%
+  count(token, sort=TRUE) %>%
+  top_n(n=1, wt = n) 
+
+```
 
 # Question 7 - extra
 

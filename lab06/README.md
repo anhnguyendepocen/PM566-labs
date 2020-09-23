@@ -171,12 +171,45 @@ mt_samples %>%
 repeat question 2, but this time tokenize into bi-grams. how does the
 result change if you look at tri-grams?
 
------
+``` r
+mt_samples %>%
+  unnest_ngrams(output=token, input=transcription, n=2) %>%
+  count(token, sort=TRUE) %>%
+  top_n(n=20, wt = n) %>%
+  ggplot(aes(x=n, y= fct_reorder(token,n)))+
+  geom_col()
+```
+
+## ![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 # Question 5
 
-Using the results you got from questions 4. Pick a word and count the
+Using the results you got from question 4. Pick a word and count the
 words that appears after and before it.
+
+``` r
+mt_samples %>%
+  unnest_ngrams(output=token, input=transcription, n=2) %>%
+  separate(col=token, into=c("word1","word2"),sep=" ") %>%
+  select(word1, word2) %>%
+  filter(word1 == "blood") %>%
+  count(word2, sort=TRUE)
+```
+
+    ## # A tibble: 161 x 2
+    ##    word2        n
+    ##    <chr>    <int>
+    ##  1 pressure  1265
+    ##  2 loss       965
+    ##  3 cell       130
+    ##  4 in         114
+    ##  5 cells      112
+    ##  6 sugar       91
+    ##  7 and         84
+    ##  8 sugars      79
+    ##  9 was         65
+    ## 10 cultures    53
+    ## # … with 151 more rows
 
 -----
 
@@ -186,6 +219,31 @@ Which words are most used in each of the specialties. you can use
 `group_by()` and `top_n()` from `dplyr` to have the calculations be done
 within each specialty. Remember to remove stopwords. How about the most
 5 used words?
+
+``` r
+mt_samples %>%
+  group_by(medical_specialty) %>%
+  unnest_tokens(output = token, input = transcription) %>%
+  anti_join(stop_words, by = c("token" = "word")) %>%
+  count(token, sort=TRUE) %>%
+  top_n(n=1, wt = n) 
+```
+
+    ## # A tibble: 41 x 3
+    ## # Groups:   medical_specialty [40]
+    ##    medical_specialty          token       n
+    ##    <chr>                      <chr>   <int>
+    ##  1 Surgery                    patient  4855
+    ##  2 Consult - History and Phy. patient  3046
+    ##  3 Orthopedic                 patient  1711
+    ##  4 Cardiovascular / Pulmonary left     1550
+    ##  5 General Medicine           patient  1356
+    ##  6 Gastroenterology           patient   872
+    ##  7 Urology                    patient   776
+    ##  8 Radiology                  left      701
+    ##  9 Emergency Room Reports     patient   685
+    ## 10 Discharge Summary          patient   672
+    ## # … with 31 more rows
 
 # Question 7 - extra
 
