@@ -39,18 +39,23 @@ If you don't already have `tidytext` then you can install with
 install.packages("tidytext")
 ```
 
+
 ### read in Medical Transcriptions
 
 Loading in reference transcription samples from https://www.mtsamples.com/
 
 ```{r, warning=FALSE, message=FALSE}
-library(readr)
-library(dplyr)
+library(tidyverse)
+library(tidytext)
 mt_samples <- read_csv("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/00_mtsamples/mtsamples.csv")
 mt_samples <- mt_samples %>%
   select(description, medical_specialty, transcription)
 
 head(mt_samples)
+mt_samples$transcription[1]
+
+names(mt_samples)
+
 ```
 
 ---
@@ -61,8 +66,13 @@ We can use `count()` from `dplyr` to figure out how many different catagories do
 
 ```{r}
 mt_samples %>%
-  count(___, sort = TRUE)
+  count(medical_specialty, sort = TRUE)
 ```
+- there are 40 categories
+
+- the specialty with the largest count (n = 1103) is surgery
+
+
 
 ---
 
@@ -74,6 +84,11 @@ mt_samples %>%
 
 Explain what we see from this result. Does it makes sense? What insights (if any) do we get?
 
+```{r}
+mt_samples %>%
+  unnest_tokens(token, text)
+
+```
 ---
 
 ## Question 3
