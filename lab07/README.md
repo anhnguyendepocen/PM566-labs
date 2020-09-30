@@ -47,8 +47,6 @@ stringr::str_extract(counts, "[0-9,]+")
 
     ## [1] "33,814"
 
-Don’t forget to commit your work\!
-
 ## Question 2: Academic publications on COVID19 and Hawaii
 
 You need to query the following The parameters passed to the query are
@@ -70,8 +68,8 @@ Use the function `httr::GET()` to make the following query:
 ``` r
 library(httr)
 query_ids <- GET(
-  url   = "BASELINE URL",
-  query = list("QUERY PARAMETERS")
+  url   = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
+  query = list(db="pubmed",term="covid19 hawaii", retmax=1000)
 )
 # Extracting the content of the response of GET
 ids <- httr::content(query_ids)
