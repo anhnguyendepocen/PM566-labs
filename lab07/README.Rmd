@@ -195,9 +195,11 @@ titles <- str_replace_all(titles, "\\s+", " ")
 Finally, put everything together into a single `data.frame` and use
 `knitr::kable` to print the results
 
-```{r build-db, eval = FALSE}
+```{r build-db, eval = TRUE}
 database <- data.frame(
-  "[DATA TO CONCATENATE]"
+  PubMedID=ids,
+  Title=titles, 
+  Abstract=abstracts
 )
 knitr::kable(database)
 ```
