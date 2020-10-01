@@ -153,7 +153,7 @@ And tabulate the results
 ```{r school-department, eval = TRUE}
 schools_and_deps <- str_extract_all(
   publications_txt,
-   "School of [[:alpha:]]+|[[:alpha:]]+ Department of [[:alpha:]]+"
+   "School\\s+of\\s+[[:alpha:]]+|[[:alpha:]]+ Department\\s+of\\s+[[:alpha:]]+"
   )
 table(schools_and_deps)
 ```
@@ -169,7 +169,7 @@ the XML a bit. We will use the `xml2::xml_children()` function to keep one eleme
 per id. This way, if a paper is missing the abstract, or something else, we will be able to properly match PUBMED IDS with their corresponding records.
 
 
-```{r one-string-per-response, eval = FALSE}
+```{r one-string-per-response, eval = TRUE}
 pub_char_list <- xml2::xml_children(publications)
 pub_char_list <- sapply(pub_char_list, as.character)
 ```
@@ -178,17 +178,18 @@ Now, extract the abstract and article title for each one of the elements of
 `pub_char_list`. You can either use `sapply()` as we just did, or simply
 take advantage of vectorization of `stringr::str_extract`
 
-```{r extracting-last-bit, eval = FALSE}
-abstracts <- str_extract(pub_char_list, "[YOUR REGULAR EXPRESSION]")
-abstracts <- str_remove_all(abstracts, "[CLEAN ALL THE HTML TAGS]")
-abstracts <- str_remove_all(abstracts, "[CLEAN ALL EXTRA WHITE SPACE AND NEW LINES]")
+```{r extracting-last-bit, eval = TRUE}
+abstracts <- str_extract(pub_char_list, "<Abstract>(\\n|.)+</Abstract>")
+abstracts <- str_remove_all(abstracts, "</?[[:alnum:]]+>")
+abstracts <- str_replace_all(abstracts, "\\s+", " ")
 ```
 
 How many of these don't have an abstract? Now, the title
 
-```{r process-titles, eval = FALSE}
-titles <- str_extract(pub_char_list, "[YOUR REGULAR EXPRESSION]")
-titles <- str_remove_all(titles, "[CLEAN ALL THE HTML TAGS]")
+```{r process-titles, eval = TRUE}
+titles <- str_extract(pub_char_list, "<ArticleTitle>(\\n|.)+</ArticleTitle>")
+titles <- str_remove_all(titles, "</?[[:alnum:]]+>")
+titles <- str_replace_all(titles, "\\s+", " ")
 ```
 
 Finally, put everything together into a single `data.frame` and use

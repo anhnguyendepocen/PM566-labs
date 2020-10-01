@@ -197,7 +197,7 @@ And tabulate the results
 ``` r
 schools_and_deps <- str_extract_all(
   publications_txt,
-   "School of [[:alpha:]]+|[[:alpha:]]+ Department of [[:alpha:]]+"
+   "School\\s+of\\s+[[:alpha:]]+|[[:alpha:]]+ Department\\s+of\\s+[[:alpha:]]+"
   )
 table(schools_and_deps)
 ```
@@ -238,16 +238,18 @@ of `pub_char_list`. You can either use `sapply()` as we just did, or
 simply take advantage of vectorization of `stringr::str_extract`
 
 ``` r
-abstracts <- str_extract(pub_char_list, "[YOUR REGULAR EXPRESSION]")
-abstracts <- str_remove_all(abstracts, "[CLEAN ALL THE HTML TAGS]")
-abstracts <- str_remove_all(abstracts, "[CLEAN ALL EXTRA WHITE SPACE AND NEW LINES]")
+abstracts <- str_extract(pub_char_list, "<Abstract>(\\n|.)+</Abstract>")
+abstracts <- str_remove_all(abstracts, "</?[[:alnum:]]+>")
+abstracts <- str_replace_all(abstracts, "\\s+", " ")
 ```
 
-How many of these don’t have an abstract? Now, the title
+How many of these don’t have an abstract? Now, the
+title
 
 ``` r
-titles <- str_extract(pub_char_list, "[YOUR REGULAR EXPRESSION]")
-titles <- str_remove_all(titles, "[CLEAN ALL THE HTML TAGS]")
+titles <- str_extract(pub_char_list, "<ArticleTitle>(\\n|.)+</ArticleTitle>")
+titles <- str_remove_all(titles, "</?[[:alnum:]]+>")
+titles <- str_replace_all(titles, "\\s+", " ")
 ```
 
 Finally, put everything together into a single `data.frame` and use
