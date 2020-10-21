@@ -5,19 +5,7 @@ link-citations: yes
 ---
 
 # Setup
-
-DELETE THIS CHUNK
-
-```{r setup}
-knitr::opts_chunk$set(eval = FALSE)
-library(RSQLite)
-library(DBI)
-# Initialize a temporary in memory database
-con <- dbConnect(SQLite(), ":memory:")
-```
-
-
-
+ 
 ```{r}
 # install.packages(c("RSQLite", "DBI"))
 library(RSQLite)
@@ -43,7 +31,7 @@ dbListTables(con)
 TIP: Use can use the following QUERY to see the structure of a table
 
 ```{sql, connection=con}
-PRAGMA table_info(actor)
+PRAGMA table_info(payment)
 ```
 
 SQL references:
@@ -64,10 +52,10 @@ ORDER by last_name, first_name
 
 Retrive the actor ID, first name, and last name for actors whose last name equals 'WILLIAMS' or 'DAVIS'.
 
-```{sql, connection=con}
-SELECT 
-FROM 
-WHERE ___ IN ('WILLIAMS', 'DAVIS')
+```{sql, connection=con, output.var = "sampledat"}
+SELECT actor_id, first_name, last_name
+FROM actor
+WHERE last_name IN ('WILLIAMS', 'DAVIS')
 ```
 
 # Exercise 3
@@ -75,10 +63,12 @@ WHERE ___ IN ('WILLIAMS', 'DAVIS')
 Write a query against the `rental` table that returns the IDs of the customers who rented a film on July 5, 2005 (use the rental.rental_date column, and you can use the date() function to ignore the time component). Include a single row for each distinct customer ID. 
 
 ```{sql, connection=con}
-SELECT DISTINCT 
-FROM 
-WHERE date(___) = '2005-07-05'
+SELECT DISTINCT customer_id,rental_date
+FROM rental
+WHERE date(rental_date) = '2005-07-05'
 ```
+ 27 customers rented a video on July 5, 2005
+
 # Exercise 4
 
 ## Exercise 4.1
@@ -87,18 +77,18 @@ Construct a query that retrives all rows from the `payment` table where the amou
 
 ```{sql, connection=con}
 SELECT *
-FROM ___
-WHERE ___ IN (1.99, 7.99, 9.99)
+FROM payment
+WHERE amount IN (1.99, 7.99, 9.99)
 ```
 
 ## Exercise 4.2
 
-Construct a query that retrives all rows from the `payment` table where the amount is greater then 5
+Construct a query that retrives all rows from the `payment` table where the amount is greater than 5
 
 ```{sql, connection=con}
 SELECT *
-FROM 
-WHERE 
+FROM payment
+WHERE amount > 5
 ```
 
 ## Exercise 4.2
@@ -107,21 +97,22 @@ Construct a query that retrives all rows from the `payment` table where the amou
 
 ```{sql, connection=con}
 SELECT *
-FROM ___
-WHERE ___ AND ___
+FROM payment
+WHERE amount > 5 AND amount < 8
+/* WHERE amount BETWEEN 5 AND 8 */
 ```
 # Exercise 5
 
 Retrive all the payment IDs and their amount from the customers whose last name is 'DAVIS'.
 
 ```{sql, connection=con}
-SELECT 
-FROM 
-  INNER JOIN 
-WHERE 
-AND 
+SELECT c.customer_id, c.first_name, c.last_name, p.payment_id
+FROM customer AS c
+  INNER JOIN payment AS p
+ON c.customer_id = p.customer_id
+WHERE c.last_name = "DAVIS"
 ```
-
+ 
 # Exercise 6
 
 ## Exercise 6.1
@@ -129,6 +120,8 @@ AND
 Use `COUNT(*)` to count the number of rows in `rental`
 
 ```{sql, connection=con}
+SELECT COUNT(*) AS n_obs
+FROM rental
 ```
 
 ## Exercise 6.2
@@ -136,12 +129,19 @@ Use `COUNT(*)` to count the number of rows in `rental`
 Use `COUNT(*)` and `GROUP BY` to count the number of rentals for each `customer_id`
 
 ```{sql, connection=con}
+SELECT COUNT(*) AS n_obs, customer_id
+FROM rental
+GROUP BY customer_id
 ```
 ## Exercise 6.3
 
 Repeat the previous query and sort by the count in descending order
 
 ```{sql, connection=con}
+SELECT COUNT(*) AS n_obs, customer_id
+FROM rental
+GROUP BY customer_id
+ORDER BY COUNT(*) DESC
 ```
 
 ## Exercise 6.4
@@ -149,6 +149,12 @@ Repeat the previous query and sort by the count in descending order
 Repeat the previous query but use `HAVING` to only keep the groups with 40 or more.
 
 ```{sql, connection=con}
+SELECT COUNT(*) AS n_obs, customer_id
+FROM rental
+GROUP BY customer_id
+HAVING n_obs >= 40
+ORDER BY COUNT(*) DESC
+
 ```
 
 # Exercise 7
@@ -156,6 +162,11 @@ Repeat the previous query but use `HAVING` to only keep the groups with 40 or mo
 The following query calculates a number of summary statistics for the payment table using `MAX`, `MIN`, `AVG` and `SUM`
 
 ```{sql, connection=con}
+SELECT AVG(amount) AS avg_amount,
+MIN(amount) AS min_amount,
+MAX(amount) AS max_amount,
+SUM(amount) AS sum_amount
+FROM payment
 ```
 
 ## Exercise 7.1
@@ -163,12 +174,29 @@ The following query calculates a number of summary statistics for the payment ta
 Modify the above query to do those calculations for each `customer_id`
 
 ```{sql, connection=con}
+SELECT customer_id, 
+  AVG(amount) AS avg_amount,
+  MIN(amount) AS min_amount,
+  MAX(amount) AS max_amount,
+  SUM(amount) AS sum_amount,
+  COUNT(*) AS count
+FROM payment
+GROUP BY customer_id
+ORDER BY count DESC
 ```
 ## Exercise 7.2
 
 Modify the above query to only keep the `customer_id`s that have more then 5 payments
 
 ```{sql, connection=con}
+SELECT customer_id, 
+  AVG(amount) AS avg_amount,
+  MIN(amount) AS min_amount,
+  MAX(amount) AS max_amount,
+  SUM(amount) AS sum_amount
+FROM payment
+GROUP BY customer_id
+HAVING COUNT(*) > 5
 ```
 # Cleanup
 
