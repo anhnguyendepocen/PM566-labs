@@ -18,7 +18,7 @@ library(DT)
 opts_chunk$set(
   warning = FALSE,
   message = FALSE,
-  eval=FALSE,
+  eval=TRUE,
   echo = TRUE,
   fig.width = 7, 
   fig.align = 'center',
@@ -324,7 +324,7 @@ plot_ly(x=colnames(cv_states_mat2), y=rownames(cv_states_mat2),
 - Plot the two maps side by side using `subplot()`. Make sure the shading is for the same range of values (google is your friend for this)
 - Describe the difference in the pattern of the CFR.
 
-```{r, eval=F}
+```{r}
 ### For May 1 2020
 # Extract the data for each state by its abbreviation
 cv_CFR <- cv_states %>% filter(date=="2020-05-01") %>% select(state, abb, naive_CFR, cases, deaths) # select data
@@ -376,7 +376,7 @@ fig <- plot_geo(cv_CFR, locationmode = 'USA-states') %>%
     z = ~naive_CFR, text = ~hover, locations = ~state,
     color = ~naive_CFR, colors = 'Purples'
   )
-fig <- fig %>% colorbar(title = "CFR May 1 2020", ___ = c(0,shadeLimit))
+fig <- fig %>% colorbar(title = "CFR May 1 2020", limits = c(0,shadeLimit))
 fig <- fig %>% layout(
     title = paste('CFR by State as of', Sys.Date(), '<br>(Hover for value)'),
     geo = set_map_details
@@ -384,7 +384,7 @@ fig <- fig %>% layout(
 fig_Today <- fig
 ### Plot side by side 
 ### FINISH THE CODE HERE ###
-subplot( ___ )
+subplot( fig_May1,fig_Today )
 ```
 
 View [here](https://ghcdn.rawgit.org/meredithfranklin/PM566-labs/master/lab11/README.html)
