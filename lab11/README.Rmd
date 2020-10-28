@@ -18,7 +18,7 @@ library(DT)
 opts_chunk$set(
   warning = FALSE,
   message = FALSE,
-  eval=TRUE,
+  eval=FALSE,
   echo = TRUE,
   fig.width = 7, 
   fig.align = 'center',
