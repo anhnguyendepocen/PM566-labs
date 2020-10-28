@@ -1,52 +1,42 @@
----
-title: "Lab 11 - Interactive Visualization I"
-output: github_document
-link-citations: yes
----
-
-
-
-```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
-library(data.table)
-library(tidyverse)
-library(dplyr)
-library(plotly)
-library(knitr)
-library(DT)
-opts_chunk$set(
-  warning = FALSE,
-  message = FALSE,
-  eval=FALSE,
-  echo = TRUE,
-  fig.width = 7, 
-  fig.align = 'center',
-  fig.asp = 0.618,
-  out.width = "700px")
-```
+Lab 11 - Interactive Visualization I
+================
 
 # Learning Goals
 
-- Read in and process the COVID dataset from the New York Times GitHub repository
-- Create interactive graphs of different types using `plot_ly()` and `ggplotly()` functions
-- Customize the hoverinfo and other plot features
-- Create a Choropleth map using `plot_geo()`
-- Create an interactive table using `DataTable`
+  - Read in and process the COVID dataset from the New York Times GitHub
+    repository
+  - Create interactive graphs of different types using `plot_ly()` and
+    `ggplotly()` functions
+  - Customize the hoverinfo and other plot features
+  - Create a Choropleth map using `plot_geo()`
+  - Create an interactive table using `DataTable`
 
 # Lab Description
 
-We will work with the COVID data presented in lecture. Recall the dataset consists of COVID-19 cases and deaths in each US state during the course of the COVID epidemic. We will explore cases, deaths, and their population normalized values over time to identify trends.
+We will work with the COVID data presented in lecture. Recall the
+dataset consists of COVID-19 cases and deaths in each US state during
+the course of the COVID epidemic. We will explore cases, deaths, and
+their population normalized values over time to identify
+trends.
 
 # Steps
 
 ## I. Reading and processing the New York Times (NYT) state-level COVID-19 data
 
-### 1. Read in the data
+### 1\. Read in the data
 
-- Read in the COVID data with data.table:fread() from the NYT GitHub repository: "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv"
-- Read in the state population data with data.table:fread() from the repository: "https://raw.githubusercontent.com/COVID19Tracking/associated-data/master/us_census_data/us_census_2018_population_estimates_states.csv""
-- Merge datasets
+  - Read in the COVID data with data.table:fread() from the NYT GitHub
+    repository:
+    “<https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv>”
+  - Read in the state population data with data.table:fread() from the
+    repository:
+    “<https://raw.githubusercontent.com/COVID19Tracking/associated-data/master/us_census_data/us_census_2018_population_estimates_states.csv>”"
+  - Merge
+datasets
 
-```{r, echo=TRUE, message=FALSE}
+<!-- end list -->
+
+``` r
 ## data extracted from New York Times state-level data from NYT Github repository
 # https://github.com/nytimes/covid-19-data
 ## state-level population information from us_census_data available on GitHub repository:
@@ -64,27 +54,33 @@ state_pops$state_name <- NULL
 cv_states <- merge(cv_states,state_pops, by="state")
 ```
 
-### 2. Look at the data
+### 2\. Look at the data
 
-- Inspect the dimensions, `head`, and `tail` of the data
-- Inspect the structure of each variables. Are they in the correct format?
+  - Inspect the dimensions, `head`, and `tail` of the data
+  - Inspect the structure of each variables. Are they in the correct
+    format?
 
-```{r}
+<!-- end list -->
+
+``` r
 dim(cv_states)
 head(cv_states)
 tail(cv_states)
 str(cv_states)
 ```
 
-### 3. Format the data
+### 3\. Format the data
 
-- Make date into a date variable
-- Make `state` and `abb` into a factor variable
-- Order the data first by state, second by date
-- Confirm the variables are now correctly formatted
-- Inspect the range values for each variable. What is the date range? The range of cases and deaths?
+  - Make date into a date variable
+  - Make `state` and `abb` into a factor variable
+  - Order the data first by state, second by date
+  - Confirm the variables are now correctly formatted
+  - Inspect the range values for each variable. What is the date range?
+    The range of cases and deaths?
 
-```{r}
+<!-- end list -->
+
+``` r
 # format the date
 cv_states$date <- as.Date(cv_states$date, format="%Y-%m-%d")
 # format the state variable
@@ -108,18 +104,27 @@ min(cv_states$date)
 max(cv_states$date)
 ```
 
-### 4. Add `new_cases` and `new_deaths` and correct outliers
+### 4\. Add `new_cases` and `new_deaths` and correct outliers
 
-- Add variables for new cases, `new_cases`, and new deaths, `new_deaths`: 
-  - Hint: `new_cases` is equal to the difference between cases on date i and date i-1, starting on date i=2
+  - Add variables for new cases, `new_cases`, and new deaths,
+    `new_deaths`:
+    
+      - Hint: `new_cases` is equal to the difference between cases on
+        date i and date i-1, starting on date i=2
 
-- Use `plotly` for EDA: See if there are outliers or values that don't make sense for `new_cases` and `new_deaths`. Which states and which dates have strange values?
+  - Use `plotly` for EDA: See if there are outliers or values that don’t
+    make sense for `new_cases` and `new_deaths`. Which states and which
+    dates have strange values?
 
-- Correct outliers: Set negative values for `new_cases` or `new_deaths` to 0
+  - Correct outliers: Set negative values for `new_cases` or
+    `new_deaths` to 0
 
-- Recalculate `cases` and `deaths` as cumulative sum of updates `new_cases` and `new_deaths`
+  - Recalculate `cases` and `deaths` as cumulative sum of updates
+    `new_cases` and `new_deaths`
 
-```{r}
+<!-- end list -->
+
+``` r
 # Add variables for new_cases and new_deaths:
 for (i in 1:length(state_list)) {
   cv_subset = subset(cv_states, state == state_list[i])
@@ -174,19 +179,27 @@ for (i in 1:length(state_list)) {
 }
 ```
 
-### 5. Add additional variables
+### 5\. Add additional variables
 
-- Add population-normalized (by 100,000) variables for each variable type (rounded to 1 decimal place). Make sure the variables you calculate are in the correct format (`numeric`). You can use the following variable names:
-  - `per100k` = cases per 100,000 population
-  - `newper100k`= new cases per 100,000
-  - `deathsper100k` = deaths per 100,000
-  - `newdeathsper100k` = new deaths per 100,000
+  - Add population-normalized (by 100,000) variables for each variable
+    type (rounded to 1 decimal place). Make sure the variables you
+    calculate are in the correct format (`numeric`). You can use the
+    following variable names:
+    
+      - `per100k` = cases per 100,000 population
+      - `newper100k`= new cases per 100,000
+      - `deathsper100k` = deaths per 100,000
+      - `newdeathsper100k` = new deaths per 100,000
 
-- Add a "naive CFR" variable representing `deaths / cases` on each date for each state
+  - Add a “naive CFR” variable representing `deaths / cases` on each
+    date for each state
 
-- Create a dataframe representing values on the most recent date, `cv_states_today`, as done in lecture
+  - Create a dataframe representing values on the most recent date,
+    `cv_states_today`, as done in lecture
 
-```{r}
+<!-- end list -->
+
+``` r
 # add population normalized (by 100,000) counts for each variable
 cv_states$per100k =  as.numeric(format(round(cv_states$cases/(cv_states$population/100000),1),nsmall=1))
 cv_states$newper100k =  as.numeric(format(round(cv_states$new_cases/(cv_states$population/100000),1),nsmall=1))
@@ -201,17 +214,24 @@ cv_states_today = subset(cv_states, date==max(cv_states$date))
 
 ## II. Interactive plots
 
-### 6. Explore scatterplots using `plot_ly()`
+### 6\. Explore scatterplots using `plot_ly()`
 
-- Create a scatterplot using `plot_ly()` representing `pop_density` vs. various variables (e.g. `cases`, `per100k`, `deaths`, `deathsper100k`) for each state on most recent date (`cv_states_today`)
-  - Use hover to identify any outliers. 
-  - Remove those outliers and replot.
-- Choose one plot. For this plot:
-  - Add hoverinfo specifying the state name, cases per 100k, and deaths per 100k, similarly to how we did this in the lecture notes
-  - Add layout information to title the chart and the axes
-  - Enable `hovermode = "compare"`
+  - Create a scatterplot using `plot_ly()` representing `pop_density`
+    vs. various variables (e.g. `cases`, `per100k`, `deaths`,
+    `deathsper100k`) for each state on most recent date
+    (`cv_states_today`)
+      - Use hover to identify any outliers.
+      - Remove those outliers and replot.
+  - Choose one plot. For this plot:
+      - Add hoverinfo specifying the state name, cases per 100k, and
+        deaths per 100k, similarly to how we did this in the lecture
+        notes
+      - Add layout information to title the chart and the axes
+      - Enable `hovermode = "compare"`
 
-```{r}
+<!-- end list -->
+
+``` r
 # pop_density vs. cases
 ### FINISH THE CODE HERE ###
 cv_states_today %>% 
@@ -246,14 +266,18 @@ cv_states_today_scatter %>%
                   yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"), hovermode = "compare")
 ```
 
-### 7. Explore scatterplot trend interactively using `ggplotly()` and `geom_smooth()`
+### 7\. Explore scatterplot trend interactively using `ggplotly()` and `geom_smooth()`
 
-- For `pop_density` vs. `newdeathsper100k` create a chart with the same variables using `gglot_ly()`
-  - What's the `geom_*()` we need here?
-- Explore the pattern between $x$ and $y$ using `geom_smooth()`
-  - Explain what you see. Do you think `pop_density` is a correlate of `newdeathsper100k`?
+  - For `pop_density` vs. `newdeathsper100k` create a chart with the
+    same variables using `gglot_ly()`
+      - What’s the `geom_*()` we need here?
+  - Explore the pattern between \(x\) and \(y\) using `geom_smooth()`
+      - Explain what you see. Do you think `pop_density` is a correlate
+        of `newdeathsper100k`?
 
-```{r}
+<!-- end list -->
+
+``` r
 ### FINISH THE CODE HERE ###
 p <- ggplot(cv_states_today_scatter, aes(x=pop_density, y=deathsper100k, size=population)) + 
         geom_point()+
@@ -261,17 +285,26 @@ p <- ggplot(cv_states_today_scatter, aes(x=pop_density, y=deathsper100k, size=po
 ggplotly(p)
 ```
 
-- It appears as though with increasing population density there is increasing deaths.
+  - It appears as though with increasing population density there is
+    increasing deaths.
 
-### 8. Multiple line chart
+### 8\. Multiple line chart
 
-- Create a line chart of the `naive_CFR` for all states over time using `plot_ly()`
-  - Use hoverinfo to identify states that had a "first peak"
-  - Use the zoom and pan tools to inspect the `naive_CFR` for the states that had a "first peak" in September. How have they changed over time?
-- Create one more line chart, for Texas only, which shows `new_cases` and `new_deaths` together in one plot. Hint: use `add_lines()`
-  - Use hoverinfo to "eyeball" the approximate peak of deaths and peak of cases. What is the time delay between the peak of cases and the peak of deaths?
+  - Create a line chart of the `naive_CFR` for all states over time
+    using `plot_ly()`
+      - Use hoverinfo to identify states that had a “first peak”
+      - Use the zoom and pan tools to inspect the `naive_CFR` for the
+        states that had a “first peak” in September. How have they
+        changed over time?
+  - Create one more line chart, for Texas only, which shows `new_cases`
+    and `new_deaths` together in one plot. Hint: use `add_lines()`
+      - Use hoverinfo to “eyeball” the approximate peak of deaths and
+        peak of cases. What is the time delay between the peak of cases
+        and the peak of deaths?
 
-```{r}
+<!-- end list -->
+
+``` r
 # Line chart for naive_CFR for all states over time using `plot_ly()`
 plot_ly(cv_states, x = ~date, y = ~naive_CFR, color = ~state, type = "scatter", mode = "lines")
 # Line chart for Texas showing new_cases and new_deaths together
@@ -279,15 +312,18 @@ plot_ly(cv_states, x = ~date, y = ~naive_CFR, color = ~state, type = "scatter", 
 cv_states %>% filter(state=="Texas") %>% plot_ly(x = ~date, y = ~new_cases, type = "scatter", mode = "lines") %>% ___
 ```
 
+### 9\. Heatmaps
 
-### 9. Heatmaps
+Create a heatmap to visualize `new_cases` for each state on each date
+greater than April 1st, 2020 - Start by mapping selected features in the
+dataframe into a matrix using the **tidyr** package function
+`pivot_wider()`, naming the rows and columns, as done in the lecture
+notes - Use `plot_ly()` to create a heatmap out of this matrix - Create
+a second heatmap in which the pattern of `new_cases` for each state over
+time becomes more clear by filtering to only look at dates every two
+weeks
 
-Create a heatmap to visualize `new_cases` for each state on each date greater than April 1st, 2020
-- Start by mapping selected features in the dataframe into a matrix using the **tidyr** package function `pivot_wider()`, naming the rows and columns, as done in the lecture notes
-- Use `plot_ly()` to create a heatmap out of this matrix
-- Create a second heatmap in which the pattern of `new_cases` for each state over time becomes more clear by filtering to only look at dates every two weeks 
-
-```{r, eval=F}
+``` r
 # Map state, date, and new_cases to a matrix
 library(tidyr)
 cv_states_mat <- cv_states %>% select(state, date, new_cases) %>% filter(date>as.Date("2020-04-01"))
@@ -315,14 +351,19 @@ plot_ly(x=colnames(cv_states_mat2), y=rownames(cv_states_mat2),
              showscale=T)
 ```
 
-### 10. Map
+### 10\. Map
 
-- Create a map to visualize the `naive_CFR` by state on May 1st, 2020
-- Compare with a map visualizing the `naive_CFR` by state on most recent date
-- Plot the two maps side by side using `subplot()`. Make sure the shading is for the same range of values (google is your friend for this)
-- Describe the difference in the pattern of the CFR.
+  - Create a map to visualize the `naive_CFR` by state on May 1st, 2020
+  - Compare with a map visualizing the `naive_CFR` by state on most
+    recent date
+  - Plot the two maps side by side using `subplot()`. Make sure the
+    shading is for the same range of values (google is your friend for
+    this)
+  - Describe the difference in the pattern of the CFR.
 
-```{r, eval=F}
+<!-- end list -->
+
+``` r
 ### For May 1 2020
 # Extract the data for each state by its abbreviation
 cv_CFR <- cv_states %>% filter(date=="2020-05-01") %>% select(state, abb, naive_CFR, cases, deaths) # select data
@@ -385,4 +426,5 @@ fig_Today <- fig
 subplot( ___ )
 ```
 
-View [here](https://ghcdn.rawgit.org/meredithfranklin/PM566-labs/master/lab11/README.html)
+View
+[here](https://ghcdn.rawgit.org/meredithfranklin/PM566-labs/master/lab11/README.html)
