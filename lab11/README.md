@@ -309,7 +309,7 @@ ggplotly(p)
 plot_ly(cv_states, x = ~date, y = ~naive_CFR, color = ~state, type = "scatter", mode = "lines")
 # Line chart for Texas showing new_cases and new_deaths together
 ### FINISH THE CODE HERE ###
-cv_states %>% filter(state=="Texas") %>% plot_ly(x = ~date, y = ~new_cases, type = "scatter", mode = "lines") %>% ___
+cv_states %>% filter(state=="Texas") %>% plot_ly(x = ~date, y = ~new_cases, type = "scatter", mode = "lines") %>% add_lines(x=~date, y=~new_deaths, type="scatter",mode="lines")
 ```
 
 ### 9\. Heatmaps
@@ -339,7 +339,7 @@ plot_ly(x=colnames(cv_states_mat2), y=rownames(cv_states_mat2),
 # Create a second heatmap after filtering to only include dates every other week
 filter_dates <- seq(as.Date("2020-04-01"), as.Date("2020-10-01"), by="2 weeks")
 ### FINISH THE CODE HERE ### 
-cv_states_mat <- cv_states %>% select(state, date, new_cases) %>% filter( ___ )
+cv_states_mat <- cv_states %>% select(state, date, new_cases) %>% filter( date %in% filter_dates )
 cv_states_mat2 <- as.data.frame(pivot_wider(cv_states_mat, names_from = state, values_from = new_cases))
 rownames(cv_states_mat2) <- cv_states_mat2$date
 cv_states_mat2$date <- NULL
@@ -387,7 +387,7 @@ fig <- plot_geo(cv_CFR, locationmode = 'USA-states') %>%
     z = ~naive_CFR, text = ~hover, locations = ~state,
     color = ~naive_CFR, colors = 'Purples'
   )
-fig <- fig %>% colorbar(title = "CFR May 1 2020", ___ = c(0,shadeLimit))
+fig <- fig %>% colorbar(title = "CFR May 1 2020", limits = c(0,shadeLimit))
 fig <- fig %>% layout(
     title = paste('CFR by State as of', Sys.Date(), '<br>(Hover for value)'),
     geo = set_map_details
